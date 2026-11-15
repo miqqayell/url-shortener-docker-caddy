@@ -1,0 +1,9 @@
+# Local mode: run only the Flask app and Redis on http://localhost:8080,
+# without Caddy, a domain or certificates.
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build mg-flask mg-redis
+services:
+  mg-flask:
+    ports:
+      - "${LOCAL_PORT:-8080}:5000"
+    environment:
+      FLASK_SECRET: ${FLASK_SECRET:-local-dev-secret}
