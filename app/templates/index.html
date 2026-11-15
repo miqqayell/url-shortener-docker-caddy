@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mikayel Ghalumyan — Infra 3 URL Shortener</title>
+<style>
+  :root {
+    --bg: #0f1216;
+    --card: #1a1f27;
+    --border: #2a313c;
+    --text: #e8ecf1;
+    --muted: #9aa4b2;
+    --accent: #5b8def;
+    --accent-hover: #7aa3ff;
+    --danger: #ef6b6b;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+    line-height: 1.55;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em;
+         background: #0b0e12; padding: .1rem .35rem; border-radius: 4px; border: 1px solid var(--border); }
+
+  header { margin-bottom: 2rem; }
+  h1 { margin: 0; font-size: 2rem; letter-spacing: -.02em; }
+  .author { color: var(--muted); margin-top: .25rem; font-size: .95rem; }
+  .author .tag {
+    display: inline-block;
+    background: rgba(74, 222, 128, .15);
+    color: var(--ok);
+    border: 1px solid rgba(74, 222, 128, .3);
+    padding: .05rem .5rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    margin-left: .35rem;
+    vertical-align: middle;
+  }
+
+  .about {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin: 0 0 1.75rem;
+  }
+  .about h2 { margin: 0 0 .4rem; font-size: 1rem; color: var(--text); }
+  .about p { margin: .4rem 0; color: var(--muted); font-size: .92rem; }
+  .stack { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+  .chip {
+    background: #0b0e12;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: .15rem .55rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  form {
+    display: flex;
+    gap: .5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  input[type=url] {
+    flex: 1;
+    padding: .6rem .75rem;
+    font: inherit;
+    color: var(--text);
+    background: #0b0e12;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+  }
+  input[type=url]:focus { border-color: var(--accent); }
+  button {
+    padding: .6rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: white;
+    background: var(--accent);
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--accent-hover); }
+
+  .flash {
+    background: rgba(239, 107, 107, .12);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: .5rem .75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: .9rem;
+  }
+
+  h2.section { font-size: .85rem; color: var(--muted); margin: 1.75rem 0 .5rem;
+               font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  .list { display: grid; gap: .5rem; }
+  .row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: .75rem;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem .9rem;
+  }
+  .short a { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .long {
+    color: var(--muted);
+    font-size: .85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .clicks {
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    background: #0b0e12;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .1rem .55rem;
+    font-size: .8rem;
+  }
+  .empty { color: var(--muted); text-align: center; padding: 1.5rem 0; }
+
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: .85rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Mikayel Ghalumyan — URL Shortener</h1>
+    <div class="author">
+      Infrastructure 3 project
+      <span class="tag">HTTPS</span>
+    </div>
+  </header>
+
+  <section class="about">
+    <h2>About this project</h2>
+    <p>
+      A small multi-container demo built for the Infrastructure 3 course.
+      The site you are looking at is a Python URL shortener that stores
+      every short link, click counter and recent-link list in Redis.
+    </p>
+    <p>
+      All traffic terminates at a <strong>Caddy</strong> reverse proxy, which
+      automatically obtains a public TLS certificate from
+      <strong>Let&rsquo;s Encrypt</strong> using a DNS-01 challenge against
+      <strong>DuckDNS</strong>. Caddy uses path-based routing to send
+      <code>/git/*</code> to a self-hosted <strong>Gitea</strong> instance
+      and everything else here, to the Flask app.
+    </p>
+    <div class="stack">
+      <span class="chip">Caddy</span>
+      <span class="chip">Flask + Gunicorn</span>
+      <span class="chip">Redis</span>
+      <span class="chip">Gitea</span>
+      <span class="chip">Docker Compose</span>
+      <span class="chip">Let&rsquo;s Encrypt</span>
+      <span class="chip">DuckDNS DNS-01</span>
+    </div>
+  </section>
+
+  {% with msgs = get_flashed_messages() %}
+    {% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% endwith %}
+
+  <h2 class="section">Try it</h2>
+  <form method="post" action="/shorten">
+    <input type="url" name="url" placeholder="https://example.com/very/long/path" required>
+    <button type="submit">shorten</button>
+  </form>
+
+  <h2 class="section">Recent links</h2>
+  <div class="list">
+    {% for item in recent %}
+      <div class="row">
+        <div class="short"><a href="/x/{{ item.code }}">/x/{{ item.code }}</a></div>
+        <div class="long" title="{{ item.long }}">{{ item.long }}</div>
+        <div class="clicks">{{ item.clicks }} click{{ '' if item.clicks == 1 else 's' }}</div>
+      </div>
+    {% else %}
+      <div class="empty">No links yet — shorten one above.</div>
+    {% endfor %}
+  </div>
+
+  <footer>
+    <div>&copy; Mikayel Ghalumyan — Infra 3, 2025–2026</div>
+    <div>Also try <a href="/git/">/git/</a> (Gitea)</div>
+  </footer>
+</body>
+</html>

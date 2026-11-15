@@ -1,0 +1,76 @@
+name: mg-infra3
+
+services:
+  mg-caddy:
+    build: ./caddy
+    container_name: mg-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - mg-caddy-data:/data
+      - mg-caddy-config:/config
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN}
+      ZEROSSL_API_KEY: ${ZEROSSL_API_KEY}
+    networks:
+      - mg-net
+    depends_on:
+      - mg-flask
+      - mg-gitea
+
+  mg-flask:
+    build: ./app
+    container_name: mg-flask
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: mg-redis
+      REDIS_PORT: 6379
+      FLASK_SECRET: ${FLASK_SECRET}
+    networks:
+      - mg-net
+    depends_on:
+      - mg-redis
+
+  mg-redis:
+    image: redis:7-alpine
+    container_name: mg-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - mg-redis-data:/data
+    networks:
+      - mg-net
+
+  mg-gitea:
+    image: gitea/gitea:1.22
+    container_name: mg-gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__server__ROOT_URL: "https://${DOMAIN}/git/"
+      GITEA__server__DOMAIN: "${DOMAIN}"
+    volumes:
+      - mg-gitea-data:/data
+    networks:
+      - mg-net
+
+networks:
+  mg-net:
+    name: mg-net
+    driver: bridge
+
+volumes:
+  mg-caddy-data:
+    name: mg-caddy-data
+  mg-caddy-config:
+    name: mg-caddy-config
+  mg-redis-data:
+    name: mg-redis-data
+  mg-gitea-data:
+    name: mg-gitea-data

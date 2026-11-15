@@ -1,0 +1,21 @@
+# Reverse proxy config for the Infra 3 project.
+
+{
+	email {env.ACME_EMAIL}
+}
+
+{env.DOMAIN} {
+	encode gzip
+
+	tls {
+		dns duckdns {env.DUCKDNS_TOKEN}
+	}
+
+	handle_path /git/* {
+		reverse_proxy mg-gitea:3000
+	}
+
+	handle {
+		reverse_proxy mg-flask:5000
+	}
+}
