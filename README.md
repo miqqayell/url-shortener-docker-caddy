@@ -1,11 +1,10 @@
-# Infra 3 project - Mikayel Ghalumyan
+# URL shortener behind Caddy with automatic HTTPS
 
-This is my submission for the Infrastructure 3 project. It is a small
-multi-container app behind a Caddy reverse proxy with a real TLS cert
-from Let's Encrypt. Everything runs with `docker compose up`.
+A small multi-container setup: a Flask URL shortener backed by Redis, and a self-hosted Gitea, both behind a Caddy reverse proxy. Caddy gets a real TLS certificate from Let's Encrypt through a DNS-01 challenge. Everything runs with `docker compose up`.
 
-- Domain: `infra-mikayel-ghalumyan.duckdns.org` (DuckDNS, points to 127.0.0.1)
-- GitLab: https://gitlab.com/kdg-ti/infrastructure-3/2025-26/acs201/mikayel-ghalumyan
+![URL shortener home page](docs/screenshot.jpg)
+
+Solo project for the Infrastructure 3 course. The original setup used the domain `infra-mikayel-ghalumyan.duckdns.org`, which pointed to 127.0.0.1 so the lecturer could test it locally.
 
 
 ## What I built
@@ -40,7 +39,15 @@ Ghalumyan).
 
 ## Architecture
 
-![Architecture diagram](img/architecture.svg)
+```mermaid
+flowchart LR
+    U[Browser] -->|HTTPS 443<br/>HTTP 80 redirects| C[mg-caddy<br/>reverse proxy + TLS]
+    C -->|/git/*| G[mg-gitea:3000]
+    C -->|everything else| F[mg-flask:5000<br/>Gunicorn]
+    F -->|6379| R[(mg-redis<br/>AOF persistence)]
+    C -.->|DNS-01 TXT record| D[DuckDNS API]
+    C -.->|ACME| LE[Let's Encrypt]
+```
 
 There are 4 containers, all on the same `mg-net` bridge network. Only
 `mg-caddy` opens ports to the host (80 and 443). The other three are
@@ -98,7 +105,6 @@ so the final image is smaller.
 ```
 .
 ├── docker-compose.yml      everything: services, network, volumes
-├── .env                    real values (included for the lecturer)
 ├── .env.example            template version
 ├── .gitignore
 ├── caddy/
@@ -107,11 +113,14 @@ so the final image is smaller.
 ├── app/
 │   ├── Dockerfile          multi-stage Flask image
 │   ├── requirements.txt
+│   ├── requirements-dev.txt  test dependencies
 │   ├── app.py              the URL shortener code
-│   └── templates/
-│       └── index.html      the homepage
-├── img/
-│   └── architecture.svg
+│   ├── templates/
+│   │   └── index.html      the homepage
+│   └── tests/              pytest tests (fakeredis)
+├── docker-compose.local.yml  local mode without Caddy
+├── docs/
+│   └── screenshot.jpg
 └── README.md
 ```
 
@@ -123,11 +132,9 @@ Linux) with Compose v2.
 
 ```bash
 # get the code
-git clone https://gitlab.com/kdg-ti/infrastructure-3/2025-26/acs201/mikayel-ghalumyan.git
-cd mikayel-ghalumyan
+git clone https://github.com/miqqayell/url-shortener-docker-caddy.git
+cd url-shortener-docker-caddy
 
-# (the .env file is already in the submission so this step
-# is only needed if you cloned fresh from gitlab)
 cp .env.example .env
 # then edit .env and put your own DOMAIN, ACME_EMAIL, DUCKDNS_TOKEN
 
@@ -145,8 +152,23 @@ Let's Encrypt account and do the DNS-01 challenge (about 30-60 seconds
 of waiting for DuckDNS propagation).
 
 Then you can open in a browser:
-- https://infra-mikayel-ghalumyan.duckdns.org/  -> the URL shortener
-- https://infra-mikayel-ghalumyan.duckdns.org/git/  -> Gitea
+- `https://<your-domain>/`  -> the URL shortener
+- `https://<your-domain>/git/`  -> Gitea
+
+**Local mode (no domain needed).** To try only the shortener and Redis on
+http://localhost:8080:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build mg-flask mg-redis
+```
+
+**Tests.** The Flask app has pytest tests that use fakeredis, so no Redis is needed:
+
+```bash
+cd app
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest
+```
 
 To stop:
 ```bash
@@ -228,3 +250,18 @@ On the fresh run Caddy gets a brand new cert and the site works again.
   point DuckDNS at the VM public IP instead of 127.0.0.1, nothing in
   the compose file changes), but I didn't actually do it because for
   the submission the DNS must point to 127.0.0.1.
+
+
+## What I learned
+
+- **Docker and Compose:** multi-stage images, private bridge networks, named volumes and keeping only the proxy exposed.
+- **Reverse proxies and TLS:** path-based routing with Caddy, and how ACME DNS-01 challenges issue real certificates even for a domain that points to 127.0.0.1.
+- **Python and NoSQL:** a small Flask app on Redis, using atomic counters and capped lists, with AOF persistence.
+- **Testing:** unit-testing a Redis-backed app with fakeredis.
+
+
+## Context
+
+University project, KdG Applied Computer Science, Infrastructure 3, 2025-2026. Solo project.
+
+When preparing this repository I added the pytest tests, the local mode and this README update. The commit history shows each change.
