@@ -41,12 +41,12 @@ Ghalumyan).
 
 ```mermaid
 flowchart LR
-    U[Browser] -->|HTTPS 443<br/>HTTP 80 redirects| C[mg-caddy<br/>reverse proxy + TLS]
-    C -->|/git/*| G[mg-gitea:3000]
-    C -->|everything else| F[mg-flask:5000<br/>Gunicorn]
-    F -->|6379| R[(mg-redis<br/>AOF persistence)]
-    C -.->|DNS-01 TXT record| D[DuckDNS API]
-    C -.->|ACME| LE[Let's Encrypt]
+    U["Browser"] -->|"HTTPS 443<br/>HTTP 80 redirects"| C["mg-caddy<br/>reverse proxy + TLS"]
+    C -->|"/git/*"| G["mg-gitea:3000"]
+    C -->|"everything else"| F["mg-flask:5000<br/>Gunicorn"]
+    F -->|"6379"| R[("mg-redis<br/>AOF persistence")]
+    C -.->|"DNS-01 TXT record"| D["DuckDNS API"]
+    C -.->|"ACME"| LE["Let's Encrypt"]
 ```
 
 There are 4 containers, all on the same `mg-net` bridge network. Only
